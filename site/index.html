@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0b0d">
+  <title>Meridian — World Clocks</title>
+  <meta name="description" content="A live, daylight-saving-aware canvas of world clocks and weather. Search any city or time zone and pin it to your meridian.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0b0d'/%3E%3Ccircle cx='19' cy='32' r='5' fill='%2393bbdd'/%3E%3Ccircle cx='45' cy='32' r='5' fill='%23f2a65c'/%3E%3Cpath d='M24 32h16' stroke='%23f4f0e7' stroke-opacity='.5' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="preload" href="assets/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/instrument-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <script src="data/timezones.js" defer></script>
+  <script src="data/places.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#clocks">Skip to the clocks</a>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand" aria-label="Meridian">
+      <span class="brand__mark" aria-hidden="true">
+        <span class="brand__dot"></span>
+        <span class="brand__dot"></span>
+      </span>
+      <span class="brand__name">Meridian</span>
+    </div>
+
+    <p class="topbar__route" id="route">London — Chennai</p>
+
+    <p class="topbar__utc">
+      <span class="topbar__label">UTC</span>
+      <time id="utc-time" datetime="">--:--:--</time>
+    </p>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar__inner">
+      <span class="toolbar__label">Watching <span id="zone-count">2</span></span>
+
+      <div class="selection" id="selection" role="list" aria-label="Selected time zones"></div>
+
+      <button class="add-city" id="add-city" type="button" aria-haspopup="dialog" aria-controls="picker">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span>Add city</span>
+      </button>
+    </div>
+  </div>
+
+  <main class="clocks" id="clocks">
+    <h1 class="sr-only">Live time around the world</h1>
+
+    <div class="canvas" id="canvas" data-count="0" aria-live="off"></div>
+
+    <div class="meridian" id="meridian" hidden>
+      <div class="meridian__badge" id="difference" aria-label="Time difference between the two zones">
+        <span class="meridian__value" id="difference-value">+5:30</span>
+        <span class="meridian__label" id="difference-label">Chennai ahead</span>
+      </div>
+    </div>
+
+    <div class="empty" id="empty" hidden>
+      <p class="empty__index" aria-hidden="true">00</p>
+      <h2 class="empty__title">An empty meridian</h2>
+      <p class="empty__copy">Pin a city to start a live line across the world.</p>
+      <button class="add-city add-city--solid" id="empty-add" type="button" aria-haspopup="dialog" aria-controls="picker">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span>Add your first city</span>
+      </button>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p class="footer__status"><span class="status__dot" aria-hidden="true"></span> Live</p>
+    <p class="footer__note">Daylight saving applied automatically</p>
+    <p class="footer__credit">
+      <a href="data/LICENSE-tzdb.txt">tzdb</a>
+      <span class="footer__sep" aria-hidden="true">·</span>
+      <a href="data/NOTICE-weather.txt">Open-Meteo / GeoNames</a>
+    </p>
+    <p class="footer__local">Your time <time id="local-time">--:--</time></p>
+  </footer>
+
+  <dialog class="picker" id="picker" aria-labelledby="picker-title">
+    <div class="picker__shell">
+      <div class="picker__head">
+        <div class="picker__heading">
+          <p class="picker__eyebrow">Add to your canvas</p>
+          <h2 class="picker__title" id="picker-title">Where in the world?</h2>
+        </div>
+        <button class="picker__close" id="picker-close" type="button" aria-label="Close city picker">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="picker__search">
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M13.2 13.2L17 17" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <input
+          id="picker-search"
+          type="search"
+          placeholder="Search city, country or time zone"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          aria-label="Search city, country or time zone"
+        >
+        <kbd class="picker__kbd" aria-hidden="true">Esc</kbd>
+      </div>
+
+      <div class="picker__filters" id="picker-filters" role="group" aria-label="Filter by region">
+        <button class="filter is-active" type="button" data-region="all" aria-pressed="true">All</button>
+        <button class="filter" type="button" data-region="Europe" aria-pressed="false">Europe</button>
+        <button class="filter" type="button" data-region="Asia" aria-pressed="false">Asia</button>
+        <button class="filter" type="button" data-region="Africa" aria-pressed="false">Africa</button>
+        <button class="filter" type="button" data-region="Americas" aria-pressed="false">Americas</button>
+        <button class="filter" type="button" data-region="Oceania" aria-pressed="false">Oceania</button>
+      </div>
+
+      <div class="picker__meta">
+        <span id="picker-status">Popular time zones</span>
+        <span class="picker__hint">↑ ↓ browse · ↵ add</span>
+      </div>
+
+      <div class="picker__body">
+        <div class="picker__results" id="picker-results" role="listbox" aria-label="Time zones"></div>
+        <p class="picker__empty" id="picker-empty" hidden></p>
+      </div>
+
+      <p class="sr-only" id="picker-announcer" aria-live="polite"></p>
+
+      <div class="picker__foot">
+        <span id="picker-selected-count">2 selected</span>
+        <p class="picker__foot-note">Your canvas is saved on this device</p>
+        <button class="picker__done" id="picker-done" type="button">Done</button>
+      </div>
+    </div>
+  </dialog>
+
+  <p class="sr-only" id="announcer" aria-live="polite"></p>
+
+  <noscript>
+    <p class="noscript">Live time needs JavaScript. Enable it in your browser, then refresh.</p>
+  </noscript>
+</body>
+</html>

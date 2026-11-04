@@ -1,0 +1,30 @@
+Meridian — weather and place data notices
+
+Weather
+-------
+Current conditions are fetched at runtime from Open-Meteo:
+  https://open-meteo.com/
+
+Open-Meteo data is provided by Open-Meteo.com contributors under the
+Creative Commons Attribution 4.0 International licence (CC BY 4.0):
+  https://creativecommons.org/licenses/by/4.0/
+
+Weather conditions use the WMO 4677 interpretation code table supplied by
+the API. No API key is required. Requests are made directly from the
+visitor's browser; readings are cached locally for ten minutes.
+
+Place coordinates
+-----------------
+City coordinates in places.js are derived from the GeoNames cities15000
+and cities5000 datasets, with small curated coordinates for remote
+stations and islands:
+  https://www.geonames.org/
+
+GeoNames data is licensed under the Creative Commons Attribution 4.0
+International licence (CC BY 4.0):
+  https://creativecommons.org/licenses/by/4.0/
+
+Time zone data
+--------------
+Time-zone metadata is derived from @vvo/tzdb and is distributed under the
+MIT licence. See LICENSE-tzdb.txt for the full text.
